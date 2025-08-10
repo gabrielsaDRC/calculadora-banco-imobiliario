@@ -10,11 +10,13 @@ import {
   DollarSign,
   History,
   Settings,
-  ArrowLeftRight
+  ArrowLeftRight,
+  BarChart3
 } from 'lucide-react';
 import { Modal } from './Modal';
 import { ConfirmModal } from './ConfirmModal';
 import { TransactionHistory } from './TransactionHistory';
+import { LeadershipDashboard } from './LeadershipDashboard';
 import {
   getSessionPlayers,
   createPlayer,
@@ -46,6 +48,7 @@ export const GameSession: React.FC<GameSessionProps> = ({ session, currentPlayer
   const [showTransfer, setShowTransfer] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showDashboard, setShowDashboard] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -353,6 +356,13 @@ export const GameSession: React.FC<GameSessionProps> = ({ session, currentPlayer
               >
                 <History size={18} />
                 <span className="hidden sm:inline">Histórico</span>
+              </button>
+              <button
+                onClick={() => setShowDashboard(true)}
+                className="flex items-center gap-2 px-3 py-2 text-white hover:bg-white/20 rounded-lg transition-all duration-300 backdrop-blur-sm border border-white/20 text-sm"
+              >
+                <BarChart3 size={18} />
+                <span className="hidden sm:inline">Dashboard</span>
               </button>
               {isHost && (
                 <>
@@ -682,6 +692,11 @@ export const GameSession: React.FC<GameSessionProps> = ({ session, currentPlayer
       {/* History Modal */}
       <Modal isOpen={showHistory} onClose={() => setShowHistory(false)} title="Histórico de Transações">
         <TransactionHistory transactions={transactions} />
+      </Modal>
+
+      {/* Dashboard Modal */}
+      <Modal isOpen={showDashboard} onClose={() => setShowDashboard(false)} title="Dashboard de Liderança">
+        <LeadershipDashboard players={players} transactions={transactions} />
       </Modal>
 
       {/* Settings Modal */}
