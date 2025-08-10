@@ -61,7 +61,8 @@ export const GameSession: React.FC<GameSessionProps> = ({ session, currentPlayer
   const [transferTo, setTransferTo] = useState('');
   const [transferAmount, setTransferAmount] = useState('');
   const [transferDescription, setTransferDescription] = useState('');
-  const [customButtons, setCustomButtons] = useState<number[]>(session.default_buttons);
+  const [sessionButtons, setSessionButtons] = useState<number[]>(session.default_buttons);
+  const [tempCustomButtons, setTempCustomButtons] = useState<number[]>(session.default_buttons);
 
   const currentPlayer = players.find(p => p.id === currentPlayerId);
   const isHost = currentPlayer?.is_host || false;
@@ -81,7 +82,8 @@ export const GameSession: React.FC<GameSessionProps> = ({ session, currentPlayer
 
   // Update custom buttons when session data changes
   useEffect(() => {
-    setCustomButtons(session.default_buttons);
+    setSessionButtons(session.default_buttons);
+    setTempCustomButtons(session.default_buttons);
   }, [session.default_buttons]);
 
   const loadData = async () => {
@@ -97,7 +99,8 @@ export const GameSession: React.FC<GameSessionProps> = ({ session, currentPlayer
       const sessionData = await getSessionDetailsById(session.id);
       
       if (sessionData) {
-        setCustomButtons(sessionData.default_buttons);
+        setSessionButtons(sessionData.default_buttons);
+        setTempCustomButtons(sessionData.default_buttons);
       }
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
@@ -293,9 +296,10 @@ export const GameSession: React.FC<GameSessionProps> = ({ session, currentPlayer
 
   const handleUpdateButtons = async () => {
     try {
-      await updateSessionButtons(session.id, customButtons);
+      await updateSessionButtons(session.id, tempCustomButtons);
       // Update local session object
-      session.default_buttons = customButtons;
+      session.default_buttons = tempCustomButtons;
+      setSessionButtons(tempCustomButtons);
       setShowSettings(false);
       // Reload data to refresh the UI
       loadData();
@@ -326,44 +330,44 @@ export const GameSession: React.FC<GameSessionProps> = ({ session, currentPlayer
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-yellow-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-green-600 via-blue-600 to-green-700 shadow-lg border-b border-white/20">
+      <div className="bg-gradient-to-r from-green-600 via-blue-600 to-green-700 shadow-lg border-b border-white/20 sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-              <h1 className="text-3xl font-bold text-white drop-shadow-lg">🏠 Banco Imobiliário</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">🏠 Banco Imobiliário</h1>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-sm text-green-100">Código da sessão:</span>
                 <button
                   onClick={copySessionCode}
-                  className="flex items-center gap-1 bg-white/20 hover:bg-white/30 backdrop-blur-sm px-3 py-1 rounded-lg text-sm font-mono transition-all duration-300 text-white border border-white/20"
+                  className="flex items-center gap-1 bg-white/20 hover:bg-white/30 backdrop-blur-sm px-3 py-2 rounded-lg text-sm font-mono transition-all duration-300 text-white border border-white/20"
                 >
                   {session.session_code}
                   {copied ? <Check size={14} className="text-green-300" /> : <Copy size={14} />}
                 </button>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={() => setShowHistory(true)}
-                className="flex items-center gap-2 px-4 py-2 text-white hover:bg-white/20 rounded-lg transition-all duration-300 backdrop-blur-sm border border-white/20"
+                className="flex items-center gap-2 px-3 py-2 text-white hover:bg-white/20 rounded-lg transition-all duration-300 backdrop-blur-sm border border-white/20 text-sm"
               >
-                <History size={20} />
+                <History size={18} />
                 <span className="hidden sm:inline">Histórico</span>
               </button>
               {isHost && (
                 <>
                   <button
                     onClick={() => setShowSettings(true)}
-                    className="flex items-center gap-2 px-4 py-2 text-white hover:bg-white/20 rounded-lg transition-all duration-300 backdrop-blur-sm border border-white/20"
+                    className="flex items-center gap-2 px-3 py-2 text-white hover:bg-white/20 rounded-lg transition-all duration-300 backdrop-blur-sm border border-white/20 text-sm"
                   >
-                    <Settings size={20} />
+                    <Settings size={18} />
                     <span className="hidden sm:inline">Config</span>
                   </button>
                   <button
                     onClick={handleEndSession}
-                    className="flex items-center gap-2 px-4 py-2 text-red-200 hover:bg-red-500/30 rounded-lg transition-all duration-300 backdrop-blur-sm border border-red-300/30"
+                    className="flex items-center gap-2 px-3 py-2 text-red-200 hover:bg-red-500/30 rounded-lg transition-all duration-300 backdrop-blur-sm border border-red-300/30 text-sm"
                   >
-                    <LogOut size={20} />
+                    <LogOut size={18} />
                     <span className="hidden sm:inline">Encerrar</span>
                   </button>
                 </>
@@ -371,9 +375,9 @@ export const GameSession: React.FC<GameSessionProps> = ({ session, currentPlayer
               {!isHost && (
                 <button
                   onClick={onLeave}
-                  className="flex items-center gap-2 px-4 py-2 text-white hover:bg-white/20 rounded-lg transition-all duration-300 backdrop-blur-sm border border-white/20"
+                  className="flex items-center gap-2 px-3 py-2 text-white hover:bg-white/20 rounded-lg transition-all duration-300 backdrop-blur-sm border border-white/20 text-sm"
                 >
-                  <LogOut size={20} />
+                  <LogOut size={18} />
                   <span className="hidden sm:inline">Sair</span>
                 </button>
               )}
@@ -383,84 +387,84 @@ export const GameSession: React.FC<GameSessionProps> = ({ session, currentPlayer
       </div>
 
       {/* Dashboard */}
-      <div className="max-w-6xl mx-auto px-4 py-6">
+      <div className="max-w-6xl mx-auto px-4 py-4 sm:py-6">
         <div className="bg-gradient-to-br from-white via-blue-50 to-green-50 rounded-2xl shadow-2xl p-8 mb-8 border border-white/20 backdrop-blur-sm">
-          <div className="flex items-center justify-center mb-6">
+          <div className="flex items-center justify-center mb-4 sm:mb-6">
             <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-6 py-3 rounded-full shadow-lg">
-              <h2 className="text-xl font-bold">📊 Dashboard da Partida</h2>
+              <h2 className="text-lg sm:text-xl font-bold">📊 Dashboard da Partida</h2>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center bg-gradient-to-br from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300">
-              <div className="text-4xl font-bold mb-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8">
+            <div className="text-center bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 sm:p-6 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300">
+              <div className="text-2xl sm:text-4xl font-bold mb-2">
                 {formatCurrency(totalValue)}
               </div>
-              <div className="text-blue-100 font-medium">💰 Valor Total em Jogo</div>
+              <div className="text-blue-100 font-medium text-sm sm:text-base">💰 Valor Total em Jogo</div>
             </div>
-            <div className="text-center bg-gradient-to-br from-green-500 to-green-600 text-white p-6 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300">
-              <div className="text-lg font-bold mb-1">
+            <div className="text-center bg-gradient-to-br from-green-500 to-green-600 text-white p-4 sm:p-6 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300">
+              <div className="text-base sm:text-lg font-bold mb-1">
                 {richestPlayer?.name || 'N/A'}
               </div>
-              <div className="text-2xl font-bold mb-2">
+              <div className="text-xl sm:text-2xl font-bold mb-2">
                 {richestPlayer ? formatCurrency(richestPlayer.balance) : 'R$ 0,00'}
               </div>
-              <div className="text-green-100 font-medium">👑 Jogador Mais Rico</div>
+              <div className="text-green-100 font-medium text-sm sm:text-base">👑 Jogador Mais Rico</div>
             </div>
-            <div className="text-center bg-gradient-to-br from-red-500 to-red-600 text-white p-6 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300">
-              <div className="text-lg font-bold mb-1">
+            <div className="text-center bg-gradient-to-br from-red-500 to-red-600 text-white p-4 sm:p-6 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300">
+              <div className="text-base sm:text-lg font-bold mb-1">
                 {poorestPlayer?.name || 'N/A'}
               </div>
-              <div className="text-2xl font-bold mb-2">
+              <div className="text-xl sm:text-2xl font-bold mb-2">
                 {poorestPlayer ? formatCurrency(poorestPlayer.balance) : 'R$ 0,00'}
               </div>
-              <div className="text-red-100 font-medium">📉 Jogador Mais Pobre</div>
+              <div className="text-red-100 font-medium text-sm sm:text-base">📉 Jogador Mais Pobre</div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-4 sm:py-8">
         {/* Action Buttons */}
-        <div className="flex flex-wrap gap-4 mb-8">
+        <div className="flex flex-wrap gap-3 sm:gap-4 mb-6 sm:mb-8">
           {isHost && (
             <button
               onClick={() => setShowAddPlayer(true)}
-              className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-6 py-3 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105"
+              className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-4 sm:px-6 py-3 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 text-sm sm:text-base"
             >
-              <Plus size={20} />
-              Adicionar Jogador
+              <Plus size={18} />
+              <span className="hidden xs:inline">Adicionar</span> Jogador
             </button>
           )}
           <button
             onClick={() => setShowTransfer(true)}
-            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105"
+            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 sm:px-6 py-3 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 text-sm sm:text-base"
           >
-            <ArrowLeftRight size={20} />
+            <ArrowLeftRight size={18} />
             Transferência
           </button>
           {isHost && (
             <button
               onClick={handleResetBalances}
-              className="flex items-center gap-2 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-6 py-3 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105"
+              className="flex items-center gap-2 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-4 sm:px-6 py-3 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 text-sm sm:text-base"
             >
-              <RotateCcw size={20} />
-              Resetar Saldos
+              <RotateCcw size={18} />
+              <span className="hidden xs:inline">Resetar</span> Saldos
             </button>
           )}
         </div>
 
         {/* Players Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {players.map((player) => (
-            <div key={player.id} className="bg-gradient-to-br from-white via-green-50 to-blue-50 rounded-2xl shadow-xl p-6 border border-white/50 backdrop-blur-sm transform hover:scale-105 transition-all duration-300">
+            <div key={player.id} className="bg-gradient-to-br from-white via-green-50 to-blue-50 rounded-2xl shadow-xl p-4 sm:p-6 border border-white/50 backdrop-blur-sm transform hover:scale-105 transition-all duration-300">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2 flex-wrap">
                     {player.name}
-                    {player.is_host && <span className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-2 py-1 rounded-full text-xs">👑 HOST</span>}
+                    {player.is_host && <span className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-2 py-1 rounded-full text-xs whitespace-nowrap">👑 HOST</span>}
                   </h3>
-                  <p className="text-4xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mt-2">
+                  <p className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mt-2">
                     {formatCurrency(player.balance)}
                   </p>
                 </div>
@@ -475,33 +479,53 @@ export const GameSession: React.FC<GameSessionProps> = ({ session, currentPlayer
               </div>
 
               {/* Quick Action Buttons */}
-              <div className="grid grid-cols-2 gap-2 mb-4">
-                {customButtons.map((amount) => (
-                  <button
-                    key={amount}
-                    onClick={() => handleQuickTransfer(player.id, amount, true)}
-                    className="bg-gradient-to-r from-green-100 to-green-200 hover:from-green-200 hover:to-green-300 text-green-800 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-300 transform hover:scale-105 shadow-md"
-                  >
-                    +{formatCurrency(amount)}
-                  </button>
-                ))}
+              <div className="space-y-3">
+                <div className="text-center">
+                  <span className="text-sm font-medium text-gray-600 bg-green-100 px-3 py-1 rounded-full">💰 Receber do Banco</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {sessionButtons.map((amount) => (
+                    <button
+                      key={amount}
+                      onClick={() => handleQuickTransfer(player.id, amount, true)}
+                      className="bg-gradient-to-r from-green-100 to-green-200 hover:from-green-200 hover:to-green-300 text-green-800 py-3 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 transform hover:scale-105 shadow-md"
+                    >
+                      +{formatCurrency(amount)}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                {customButtons.map((amount) => (
-                  <button
-                    key={-amount}
-                    onClick={() => handleQuickTransfer(player.id, -amount)}
-                    className="bg-gradient-to-r from-red-100 to-red-200 hover:from-red-200 hover:to-red-300 text-red-800 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-300 transform hover:scale-105 shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                    disabled={player.balance < amount}
-                  >
-                    -{formatCurrency(amount)}
-                  </button>
-                ))}
+              <div className="space-y-3 mt-4">
+                <div className="text-center">
+                  <span className="text-sm font-medium text-gray-600 bg-red-100 px-3 py-1 rounded-full">💸 Pagar</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {sessionButtons.map((amount) => (
+                    <button
+                      key={-amount}
+                      onClick={() => handleQuickTransfer(player.id, -amount)}
+                      className="bg-gradient-to-r from-red-100 to-red-200 hover:from-red-200 hover:to-red-300 text-red-800 py-3 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 transform hover:scale-105 shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                      disabled={player.balance < amount}
+                    >
+                      -{formatCurrency(amount)}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Floating Action Button for Mobile */}
+      <div className="fixed bottom-6 right-6 sm:hidden z-30">
+        <button
+          onClick={() => setShowTransfer(true)}
+          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white p-4 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110"
+        >
+          <ArrowLeftRight size={24} />
+        </button>
       </div>
 
       {/* Add Player Modal */}
@@ -516,7 +540,7 @@ export const GameSession: React.FC<GameSessionProps> = ({ session, currentPlayer
               value={newPlayerName}
               onChange={(e) => setNewPlayerName(e.target.value)}
               placeholder="Digite o nome"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
               required
             />
           </div>
@@ -528,21 +552,21 @@ export const GameSession: React.FC<GameSessionProps> = ({ session, currentPlayer
               type="number"
               value={newPlayerBalance}
               onChange={(e) => setNewPlayerBalance(parseInt(e.target.value) || 0)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
               min="0"
             />
           </div>
-          <div className="flex gap-3 justify-end">
+          <div className="flex gap-3 justify-end pt-4">
             <button
               type="button"
               onClick={() => setShowAddPlayer(false)}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+              className="px-6 py-3 text-gray-600 hover:text-gray-800 transition-colors text-base"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+              className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-base"
             >
               Adicionar
             </button>
@@ -560,14 +584,14 @@ export const GameSession: React.FC<GameSessionProps> = ({ session, currentPlayer
             <select
               value={transferFrom}
               onChange={(e) => setTransferFrom(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
               required
             >
               <option value="">Selecionar origem</option>
-              <option value="bank">Banco</option>
+              <option value="bank">🏦 Banco</option>
               {players.map((player) => (
                 <option key={player.id} value={player.id}>
-                  {player.name} - {formatCurrency(player.balance)}
+                  👤 {player.name} - {formatCurrency(player.balance)}
                 </option>
               ))}
             </select>
@@ -579,14 +603,14 @@ export const GameSession: React.FC<GameSessionProps> = ({ session, currentPlayer
             <select
               value={transferTo}
               onChange={(e) => setTransferTo(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
               required
             >
               <option value="">Selecionar destino</option>
-              <option value="bank">Banco</option>
+              <option value="bank">🏦 Banco</option>
               {players.map((player) => (
                 <option key={player.id} value={player.id}>
-                  {player.name} - {formatCurrency(player.balance)}
+                  👤 {player.name} - {formatCurrency(player.balance)}
                 </option>
               ))}
             </select>
@@ -600,11 +624,31 @@ export const GameSession: React.FC<GameSessionProps> = ({ session, currentPlayer
               value={transferAmount}
               onChange={(e) => setTransferAmount(e.target.value)}
               placeholder="Digite o valor"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
               min="1"
               required
             />
           </div>
+          
+          {/* Quick Amount Buttons for Transfer */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Valores Rápidos:
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {sessionButtons.map((amount) => (
+                <button
+                  key={`quick-${amount}`}
+                  type="button"
+                  onClick={() => setTransferAmount(amount.toString())}
+                  className="bg-gradient-to-r from-blue-100 to-blue-200 hover:from-blue-200 hover:to-blue-300 text-blue-800 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-300"
+                >
+                  {formatCurrency(amount)}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Descrição (opcional)
@@ -614,20 +658,20 @@ export const GameSession: React.FC<GameSessionProps> = ({ session, currentPlayer
               value={transferDescription}
               onChange={(e) => setTransferDescription(e.target.value)}
               placeholder="Ex: Compra de propriedade"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
             />
           </div>
-          <div className="flex gap-3 justify-end">
+          <div className="flex gap-3 justify-end pt-4">
             <button
               type="button"
               onClick={() => setShowTransfer(false)}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+              className="px-6 py-3 text-gray-600 hover:text-gray-800 transition-colors text-base"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-base"
             >
               Transferir
             </button>
@@ -649,35 +693,35 @@ export const GameSession: React.FC<GameSessionProps> = ({ session, currentPlayer
                 Botões de Valores Rápidos
               </label>
               <div className="grid grid-cols-2 gap-2">
-                {customButtons.map((value, index) => (
+                {tempCustomButtons.map((value, index) => (
                   <input
                     key={index}
                     type="number"
                     value={value}
                     onChange={(e) => {
-                      const newButtons = [...customButtons];
+                      const newButtons = [...tempCustomButtons];
                       newButtons[index] = parseInt(e.target.value) || 0;
-                      setCustomButtons(newButtons);
+                      setTempCustomButtons(newButtons);
                     }}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    className="px-3 py-3 border border-gray-300 rounded-lg text-base"
                     min="1"
                   />
                 ))}
               </div>
             </div>
-            <div className="flex gap-3 justify-end">
+            <div className="flex gap-3 justify-end pt-4">
               <button
                 onClick={() => {
-                  setCustomButtons(session.default_buttons);
+                  setTempCustomButtons(sessionButtons);
                   setShowSettings(false);
                 }}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                className="px-6 py-3 text-gray-600 hover:text-gray-800 transition-colors text-base"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleUpdateButtons}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-base"
               >
                 Salvar
               </button>
